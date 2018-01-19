@@ -12,6 +12,9 @@ import numpy as np
 
 localData = np.load("localdata.npy")
 globalData = np.load("globaldata.npy")
+print globalData[:,-1]
+print globalData[:,1]
+
 globalVarNames = ['lastScan','patientId','scanId','ptName','AAA','AGE','SEXE','IMC',\
                   'Psys','Pdias','HTA','nRxantiHTA','DLP','STATINES','volLum','voTH',\
                   'vTot','vTot_monthly','vTot_monthly_2percentthreshold','areaLum',\
@@ -34,7 +37,7 @@ globalVarNames = ['lastScan','patientId','scanId','ptName','AAA','AGE','SEXE','I
                   'localOSIVarMin','localRRTVarMean','localRRTVarMax','localRRTVarMin',\
                   'localTAWSSVarMean',' localTAWSSVarMax','localTAWSSVarMin','localECAPVarMean',\
                   'localECAPVarMax','localECAPVarMin','thrombusCoverage',\
-                  'thrombusCoverageVar', 'dt','CummulativeRisk']
+                  'thrombusCoverageVar', 'dt','CummulativeRisk', 'dMaxGrowthRegression']
 
 
 localVarNames = ['AbscissaMetric', 'AngularMetric', 'BoundaryMetric', 'ClippingArray', \
@@ -87,7 +90,7 @@ if AAAvsnoAAA:
             s,p = stats.ttest_ind(aaa, noaaa, equal_var=False, nan_policy='omit')
             if p<0.001:
                 p = '<0.001'
-            print globalVarNames[i],',',np.nanmean(aaa),',',np.nanstd(aaa), ',',np.nanmean(noaaa),',',np.nanstd(noaaa),',',p
+            # print globalVarNames[i],',',np.nanmean(aaa),',',np.nanstd(aaa), ',',np.nanmean(noaaa),',',np.nanstd(noaaa),',',p
     print '\n\n'
 
     for i in xrange(localData.shape[1]):
@@ -101,7 +104,7 @@ if AAAvsnoAAA:
             s,p = stats.ttest_ind(aaa, noaaa, equal_var=False, nan_policy='omit')
             if p<0.001:
                 p = '<0.001'
-            print localVarNames[i],',',np.nanmean(aaa),',',np.nanstd(aaa), ',',np.nanmean(noaaa),',',np.nanstd(noaaa),',',p
+            # print localVarNames[i],',',np.nanmean(aaa),',',np.nanstd(aaa), ',',np.nanmean(noaaa),',',np.nanstd(noaaa),',',p
 
 
 
@@ -118,7 +121,7 @@ if riskvsnorisk:
             s,p = stats.ttest_ind(risk, norisk, equal_var=False, nan_policy='omit')
             if p<0.001:
                 p = '<0.001'
-            print globalVarNames[i],',',np.nanmean(risk),',',np.nanstd(risk), ',',np.nanmean(norisk),',',np.nanstd(norisk),',',p
+            # print globalVarNames[i],',',np.nanmean(risk),',',np.nanstd(risk), ',',np.nanmean(norisk),',',np.nanstd(norisk),',',p
     print '\n\n'
 
 #    for i in xrange(localData.shape[1]):
