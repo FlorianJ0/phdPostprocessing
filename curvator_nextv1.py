@@ -220,6 +220,7 @@ if computeCurv:
         if not AAA:
             thVol = 0  # np.NAN
             growth = list(np.ones(9) * 0)
+            slope = -1
         # var in growth file: dt ,vol, area, shape, dmax, dmaxTH, thVol, tort, curv
         volLum_monthly = growth[0]
         areaLum_monthly = growth[1]
@@ -511,6 +512,7 @@ if computeCurv:
 
         if not AAA:
             risky = False
+            dmaxVarAnnual = -1
         if  risky and lastScan:
             fastamoi += 1
 
