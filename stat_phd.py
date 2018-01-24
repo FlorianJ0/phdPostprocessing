@@ -17,6 +17,7 @@ import pandas as pd
 from bokeh.layouts import gridplot
 from bokeh.plotting import figure, show, output_file
 import traces
+
 localData = np.load("localdata.npy")
 globalData = np.load("globaldata.npy")
 
@@ -31,16 +32,14 @@ for i in xrange(globalData[:, 1].shape[0]):
 
 # compute sorting index
 ind = np.lexsort((globalData[:, 2].astype(float), globalData[:, -1].astype(float)))
-indLoc = np.ones(localData.shape[0])
+indLoc = np.ones(localData.shape[0])*np.nan
+index = np.indices([600])
 for i in xrange(globalData.shape[0]):
-    indLoc[(i)*600 : (i+1)*600-1] = ind[i]
+    indLoc[(i) * 600: (i + 1) * 600 ] = (ind[i]*600)+index
 
-print localData.shape
-print globalData.shape
 globalData = globalData[ind]
-localData = localData[indLoc.astype(int)]
-
-
+indLoc = indLoc.astype(int)
+localData = localData[indLoc]
 
 globalVarNames = ['lastScan', 'patientId', 'scanId', 'ptName', 'AAA', 'AGE', 'SEXE', 'IMC', \
                   'Psys', 'Pdias', 'HTA', 'nRxantiHTA', 'DLP', 'STATINES', 'volLum', 'voTH', \
@@ -143,7 +142,7 @@ if riskvsnorisk:
     print '\n\n'
 
 nscans = []
-globalData[:,1] = globalData[:,1].astype(int)
+globalData[:, 1] = globalData[:, 1].astype(int)
 prev = globalData[0, 1]
 cunt = 0
 for i in xrange(globalData.shape[0]):
@@ -151,49 +150,40 @@ for i in xrange(globalData.shape[0]):
         cunt += 1
     else:
         nscans.append(cunt)
-        cunt +=1
+        cunt += 1
     prev = globalData[i, 1]
 
-
-
 dt = np.empty([139])
-globalData = np.insert(globalData, 100,0, axis=1)
+globalData = np.insert(globalData, 100, 0, axis=1)
 
-#lastcolumn = time (0, t1, t2+t1 etc)
+# lastcolumn = time (0, t1, t2+t1 etc)
 prev = 0
-for i in xrange(globalData[:,-1].shape[0]):
-    globalData[i,-1] = prev
-    if globalData[i,-4] == 'nan':
+for i in xrange(globalData[:, -1].shape[0]):
+    globalData[i, -1] = prev
+    if globalData[i, -4] == 'nan':
         prev = 0
     else:
-        prev = globalData[i,-4].astype(float)+prev
+        prev = globalData[i, -4].astype(float) + prev
 
-a = np.split(globalData,nscans, axis=0)
-
-
-
-
+a = np.split(globalData, nscans, axis=0)
 
 time_seriesSlow = traces.TimeSeries()
 time_seriesFast = traces.TimeSeries()
 
 varID = 52
 varname = globalVarNames[varID]
-minVar = np.nanmin(globalData[:,varID].astype(float)) - 0.1 * np.nanmin(globalData[:,varID].astype(float))
-maxVar = np.nanmax(globalData[:,varID].astype(float)) + 0.1 * np.nanmax(globalData[:,varID].astype(float))
+minVar = np.nanmin(globalData[:, varID].astype(float)) - 0.1 * np.nanmin(globalData[:, varID].astype(float))
+maxVar = np.nanmax(globalData[:, varID].astype(float)) + 0.1 * np.nanmax(globalData[:, varID].astype(float))
 
-p1 = figure(x_range=(-1, np.max(globalData[:,-1].astype(float)+1)), y_range=(minVar, maxVar))
-p1.grid.grid_line_alpha=0.3
+p1 = figure(x_range=(-1, np.max(globalData[:, -1].astype(float) + 1)), y_range=(minVar, maxVar))
+p1.grid.grid_line_alpha = 0.3
 p1.xaxis.axis_label = 'Follow-up time (month)'
 p1.yaxis.axis_label = varname
-for i in xrange(np.max(globalData[:,1].astype(int))):
+for i in xrange(np.max(globalData[:, 1].astype(int))):
     # b= np.append(a[i][:,0], np.indices([a[i][:,0].shape[0]]).T.reshape(a[i][:,0].shape[0]), axis=1)
-    index = list(np.indices([a[i][:,0].shape[0]])[0])
-    df2 = pd.DataFrame(a[i][:,[varID,-3,-1]], index=index)
-
-
-    # plt.plot(a[i][:, -1], a[i][:, 16].astype(float))
-    if  df2[1][0]=='True':
+    index = list(np.indices([a[i][:, 0].shape[0]])[0])
+    df2 = pd.DataFrame(a[i][:, [varID, -3, -1]], index=index)
+    if df2[1][0] == 'True':
         for k in xrange(a[i][:, -1].shape[0]):
             time_seriesFast[a[i][k, -1].astype(float)] = a[i][k, varID].astype(float)
         color = '#ffb3b3'
@@ -204,21 +194,23 @@ for i in xrange(np.max(globalData[:,1].astype(int))):
 
         color = '#b3b3ff'
     if i > 0:
-
-        p1.line(df2[2],df2[0], color=color,line_width=4 )
+        p1.line(df2[2], df2[0], color=color, line_width=4)
         # print df2[0]
 
-quickAvg = time_seriesFast.moving_average(1,window_size=30, pandas=True)
-quickAvg=pd.DataFrame(quickAvg, columns = [varname])
+quickAvg = time_seriesFast.moving_average(1, window_size=30, pandas=True)
+quickAvg = pd.DataFrame(quickAvg, columns=[varname])
 
-slowAvg = time_seriesSlow.moving_average(1,window_size=30, pandas=True)
-slowAvg=pd.DataFrame(slowAvg, columns = [varname])
+slowAvg = time_seriesSlow.moving_average(1, window_size=30, pandas=True)
+slowAvg = pd.DataFrame(slowAvg, columns=[varname])
 
-p1.line(quickAvg.index,quickAvg[varname], color='#ff0000',line_width=4 )
-p1.line(slowAvg.index,slowAvg[varname], color='#0000ff',line_width=4 )
+p1.line(quickAvg.index, quickAvg[varname], color='#ff0000', line_width=4)
+p1.line(slowAvg.index, slowAvg[varname], color='#0000ff', line_width=4)
 
 # show(p1)
 
+
+varID = 9
+varname = localVarNames[varID]
 
 p2 = figure(title='test')
 
@@ -227,25 +219,21 @@ l = list(indLoc[:].astype(int))
 
 preums = 0
 nscans.append(139)
-index = list(np.indices([600]))
+index = list(np.indices([599])[0])
 for i in nscans:
-    n = i  -prev
-    id = list(np.indices([n])[0]+prev)
-    print prev, i, id, n
-    # print prev*600, (i)*600-1
+    n = i - prev
+    id = list(np.indices([n])[0] + prev)
+    # print prev, i, id, n
+    npArr = np.empty([599, n])
     for k in xrange(n):
-        print (id[0]+k)*600,(id[0]+k+1)*600-1
-        arr = localData[(id[0]+k)*600,(id[0]+k+1)*600-1]
-        df3 = pd.DataFrame(, index = index)
-
+        # print (id[0] + k) * 600, (id[0] + k + 1) * 600 - 1
+        npArr[:, k] = localData[(id[0] + k) * 600:(id[0] + k + 1) * 600 - 1, varID]
+        df3 = pd.DataFrame(npArr, index=index)
+        # print 'df3', df3.shape, npArr.shape
 
     prev = i
-
-
-
-
-
-
+print np.max(localData[-1200:-600,varID].astype(float)),np.min(localData[-1200:-600:,varID].astype(float))
+# print df3
 # plt.show()
 # print slow.shape, fast.shape
 # sns.lmplot(slow[])
