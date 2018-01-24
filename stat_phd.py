@@ -9,87 +9,39 @@ Created on Sat Nov 25 18:59:47 2017
 import os
 from scipy import stats
 import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
 import collections
-
+import matplotlib.cm as cm
+import pandas as pd
+from bokeh.layouts import gridplot
+from bokeh.plotting import figure, show, output_file
+import traces
 localData = np.load("localdata.npy")
 globalData = np.load("globaldata.npy")
 
-g=0
-for i in xrange(globalData[:,1].shape[0]):
+g = 0
+for i in xrange(globalData[:, 1].shape[0]):
     # print globalData[138-i,-1]
-    if  globalData[138-i,-1] != 'nan':
+    if globalData[138 - i, -1] != 'nan':
         g = globalData[138 - i, -1]
 
     else:
-        globalData[138-i,-1] = g
-    # print globalData[138 - i, -1]
+        globalData[138 - i, -1] = g
 
+# compute sorting index
+ind = np.lexsort((globalData[:, 2].astype(float), globalData[:, -1].astype(float)))
+indLoc = np.ones(localData.shape[0])
+for i in xrange(globalData.shape[0]):
+    indLoc[(i)*600 : (i+1)*600-1] = ind[i]
 
-a = globalData#[:30,:]
-# print a.shape
-print a[:,-1].astype(float)
-print a[:,2].astype(float)
-ind = np.lexsort((a[:,2].astype(float),a[:,-1].astype(float)))
-# print ind
-for i in xrange(20):
-    print a[i,-1],a[i,2], ind[i]
-
-print a[ind][:,-1]
-
-
-
-# print globalData[:,-1].astype(float)
-ind = np.lexsort((globalData[:,-1].astype(float)))#,globalData[:,2].astype(int)))
-# print ind
-# globalData[ind]
-# print globalData[:,1]
-sortArray = np.array([globalData[:, -1].astype(float), globalData[:, 1].astype(int)]).T
-
-sortArray = sortArray[sortArray[:, 0].argsort()]
-sortedGlobal = globalData
+print localData.shape
 print globalData.shape
-# print globalData.shape
-sorter = np.empty([globalData.shape[0]])
-k=0
-l = list(globalData[:,1])
-id =0
+globalData = globalData[ind]
+localData = localData[indLoc.astype(int)]
 
 
 
-# for i in list(sortArray[:33,1].astype(int)):
-#     ii = 0
-#     for k in list(globalData[:,1]):
-#         print k, i#, int(k)==int(i)
-#         if int(k) == int(i):
-#             # print ''
-#             # print sortedGlobal[id, :].shape, globalData[int(k),:].shape
-#             sortedGlobal[id, :] = globalData[int(k)+ii,:]
-#             # print ii
-#
-#             ii+=1
-#             id +=1
-#     # print id
-# print globalData[:,3]
-
-# print sortedGlobal[:,1:4]
-# print sortedGlobal[:,3]
-# for i in xrange(33):
-    # print i
-    # scans = np.count_nonzero(sortArray[:,1] == i)
-    # print scans
-#     for n in xrange(scans):
-#         # print sortArray[i,:][1], k
-#         sorter[k] =  sortArray[i,:][1]
-#         for j in xrange(globalData.shape[0]):
-#             # print globalData[j, 2], str(int(sortArray[i+n, :][1])),  globalData[j, 2] == str(int(sortArray[i+n, :][1]))
-#             if globalData[j,2] == str(int(sortArray[i+n,:][1])):
-#                 # print globalData[j,3]
-#                 sortedGlobal[k,:] = globalData[j,:]
-#         k+=1
-
-# print sortedGlobal[:,3]
-
-# print sorter
 globalVarNames = ['lastScan', 'patientId', 'scanId', 'ptName', 'AAA', 'AGE', 'SEXE', 'IMC', \
                   'Psys', 'Pdias', 'HTA', 'nRxantiHTA', 'DLP', 'STATINES', 'volLum', 'voTH', \
                   'vTot', 'vTot_monthly', 'vTot_monthly_2percentthreshold', 'areaLum', \
@@ -185,11 +137,118 @@ if riskvsnorisk:
             #        print 'mean =', np.mean(aaa), np.mean(noaaa)
             #        print 'stdev =', np.std(aaa), np.std(noaaa)
             s, p = stats.ttest_ind(risk, norisk, equal_var=False, nan_policy='omit')
-            if p < 0.001:
-                p = '<0.001'
+            # if p < 0.001:
+            #     p = '<0.001'
             # print globalVarNames[i],',',np.nanmean(risk),',',np.nanstd(risk), ',',np.nanmean(norisk),',',np.nanstd(norisk),',',p
     print '\n\n'
 
+nscans = []
+globalData[:,1] = globalData[:,1].astype(int)
+prev = globalData[0, 1]
+cunt = 0
+for i in xrange(globalData.shape[0]):
+    if globalData[i, 1] == prev:
+        cunt += 1
+    else:
+        nscans.append(cunt)
+        cunt +=1
+    prev = globalData[i, 1]
+
+
+
+dt = np.empty([139])
+globalData = np.insert(globalData, 100,0, axis=1)
+
+#lastcolumn = time (0, t1, t2+t1 etc)
+prev = 0
+for i in xrange(globalData[:,-1].shape[0]):
+    globalData[i,-1] = prev
+    if globalData[i,-4] == 'nan':
+        prev = 0
+    else:
+        prev = globalData[i,-4].astype(float)+prev
+
+a = np.split(globalData,nscans, axis=0)
+
+
+
+
+
+time_seriesSlow = traces.TimeSeries()
+time_seriesFast = traces.TimeSeries()
+
+varID = 52
+varname = globalVarNames[varID]
+minVar = np.nanmin(globalData[:,varID].astype(float)) - 0.1 * np.nanmin(globalData[:,varID].astype(float))
+maxVar = np.nanmax(globalData[:,varID].astype(float)) + 0.1 * np.nanmax(globalData[:,varID].astype(float))
+
+p1 = figure(x_range=(-1, np.max(globalData[:,-1].astype(float)+1)), y_range=(minVar, maxVar))
+p1.grid.grid_line_alpha=0.3
+p1.xaxis.axis_label = 'Follow-up time (month)'
+p1.yaxis.axis_label = varname
+for i in xrange(np.max(globalData[:,1].astype(int))):
+    # b= np.append(a[i][:,0], np.indices([a[i][:,0].shape[0]]).T.reshape(a[i][:,0].shape[0]), axis=1)
+    index = list(np.indices([a[i][:,0].shape[0]])[0])
+    df2 = pd.DataFrame(a[i][:,[varID,-3,-1]], index=index)
+
+
+    # plt.plot(a[i][:, -1], a[i][:, 16].astype(float))
+    if  df2[1][0]=='True':
+        for k in xrange(a[i][:, -1].shape[0]):
+            time_seriesFast[a[i][k, -1].astype(float)] = a[i][k, varID].astype(float)
+        color = '#ffb3b3'
+        # print 'Grand'
+    else:
+        for k in xrange(a[i][:, -1].shape[0]):
+            time_seriesSlow[a[i][k, -1].astype(float)] = a[i][k, varID].astype(float)
+
+        color = '#b3b3ff'
+    if i > 0:
+
+        p1.line(df2[2],df2[0], color=color,line_width=4 )
+        # print df2[0]
+
+quickAvg = time_seriesFast.moving_average(1,window_size=30, pandas=True)
+quickAvg=pd.DataFrame(quickAvg, columns = [varname])
+
+slowAvg = time_seriesSlow.moving_average(1,window_size=30, pandas=True)
+slowAvg=pd.DataFrame(slowAvg, columns = [varname])
+
+p1.line(quickAvg.index,quickAvg[varname], color='#ff0000',line_width=4 )
+p1.line(slowAvg.index,slowAvg[varname], color='#0000ff',line_width=4 )
+
+# show(p1)
+
+
+p2 = figure(title='test')
+
+# print indLoc, indLoc.shape, type(indLoc), list(indLoc[:])
+l = list(indLoc[:].astype(int))
+
+preums = 0
+nscans.append(139)
+index = list(np.indices([600]))
+for i in nscans:
+    n = i  -prev
+    id = list(np.indices([n])[0]+prev)
+    print prev, i, id, n
+    # print prev*600, (i)*600-1
+    for k in xrange(n):
+        print (id[0]+k)*600,(id[0]+k+1)*600-1
+        arr = localData[(id[0]+k)*600,(id[0]+k+1)*600-1]
+        df3 = pd.DataFrame(, index = index)
+
+
+    prev = i
+
+
+
+
+
+
+# plt.show()
+# print slow.shape, fast.shape
+# sns.lmplot(slow[])
 #    for i in xrange(localData.shape[1]):
 #        if i not in [28, 29, 30]:
 #            risk= localDataAAA[:, i].astype(float)
