@@ -10,13 +10,26 @@ import os
 from scipy import stats
 import numpy as np
 import matplotlib.pyplot as plt
-import seaborn as sns
 import collections
 import matplotlib.cm as cm
 import pandas as pd
 from bokeh.layouts import gridplot
 from bokeh.plotting import figure, show, output_file
 import traces
+import seaborn as sns
+from bokeh.models import LinearAxis, Range1d, ContinuousAxis
+from bokeh.models import ColumnDataSource, Whisker
+from bokeh.layouts import gridplot
+from bokeh.io import output_file, show, export_png, export_png
+from bokeh.layouts import gridplot, layout
+from bokeh.palettes import Viridis3
+from bokeh.plotting import figure
+import numpy as np
+# import holoviews as hv
+import matplotlib.gridspec as gridspec
+
+
+# hv.extension('bokeh')
 
 localData = np.load("localdata.npy")
 globalData = np.load("globaldata.npy")
@@ -32,10 +45,10 @@ for i in xrange(globalData[:, 1].shape[0]):
 
 # compute sorting index
 ind = np.lexsort((globalData[:, 2].astype(float), globalData[:, -1].astype(float)))
-indLoc = np.ones(localData.shape[0])*np.nan
+indLoc = np.ones(localData.shape[0]) * np.nan
 index = np.indices([600])
 for i in xrange(globalData.shape[0]):
-    indLoc[(i) * 600: (i + 1) * 600 ] = (ind[i]*600)+index
+    indLoc[(i) * 600: (i + 1) * 600] = (ind[i] * 600) + index
 
 globalData = globalData[ind]
 indLoc = indLoc.astype(int)
@@ -179,18 +192,22 @@ p1 = figure(x_range=(-1, np.max(globalData[:, -1].astype(float) + 1)), y_range=(
 p1.grid.grid_line_alpha = 0.3
 p1.xaxis.axis_label = 'Follow-up time (month)'
 p1.yaxis.axis_label = varname
+p1.extra_y_ranges = {"foo": Range1d(start=0, end=1)}
+p1.add_layout(LinearAxis(y_range_name="foo", axis_label='Normalized averaged data over all patients'), 'right')
+# p1.add_layout(LinearAxis(y_range_name="toto"), 'above')
+
 for i in xrange(np.max(globalData[:, 1].astype(int))):
     # b= np.append(a[i][:,0], np.indices([a[i][:,0].shape[0]]).T.reshape(a[i][:,0].shape[0]), axis=1)
     index = list(np.indices([a[i][:, 0].shape[0]])[0])
     df2 = pd.DataFrame(a[i][:, [varID, -3, -1]], index=index)
     if df2[1][0] == 'True':
         for k in xrange(a[i][:, -1].shape[0]):
-            time_seriesFast[a[i][k, -1].astype(float)] = a[i][k, varID].astype(float)
+            time_seriesFast[a[i][k, -1].astype(float)] = (a[i][k, varID].astype(float) - minVar) / (maxVar - minVar)
         color = '#ffb3b3'
         # print 'Grand'
     else:
         for k in xrange(a[i][:, -1].shape[0]):
-            time_seriesSlow[a[i][k, -1].astype(float)] = a[i][k, varID].astype(float)
+            time_seriesSlow[a[i][k, -1].astype(float)] = (a[i][k, varID].astype(float) - minVar) / (maxVar - minVar)
 
         color = '#b3b3ff'
     if i > 0:
@@ -203,49 +220,104 @@ quickAvg = pd.DataFrame(quickAvg, columns=[varname])
 slowAvg = time_seriesSlow.moving_average(1, window_size=30, pandas=True)
 slowAvg = pd.DataFrame(slowAvg, columns=[varname])
 
-p1.line(quickAvg.index, quickAvg[varname], color='#ff0000', line_width=4)
-p1.line(slowAvg.index, slowAvg[varname], color='#0000ff', line_width=4)
+p1.line(quickAvg.index, quickAvg[varname], color='#ff0000', line_width=4, y_range_name="foo")
+p1.line(slowAvg.index, slowAvg[varname], color='#0000ff', line_width=4, y_range_name="foo")
 
+p2 = figure()
+p2.line(slowAvg.index, slowAvg[varname], color='#f142f4', line_width=4, y_range_name="foo")
+
+#
 # show(p1)
+# show(p2)
 
+# grid = gridplot([p1, p2], ncols=2, plot_width=250, plot_height=250)
+# show(grid)
 
 varID = 9
 varname = localVarNames[varID]
 
-p2 = figure(title='test')
+# p2 = figure(title='test')
 
-# print indLoc, indLoc.shape, type(indLoc), list(indLoc[:])
-l = list(indLoc[:].astype(int))
+# # print indLoc, indLoc.shape, type(indLoc), list(indLoc[:])
+# l = list(indLoc[:].astype(int))
+#
+# preums = 0
+# nscans.append(139)
+# index = list(np.indices([599])[0])
+# data = []
+#
+pl = []
+l = 0
+ll = []
+indices = list(np.indices([600])[0])
+# fig=plt.figure()
+# # ax=fig.add_subplot(1,1,1)
+# #fig, axes = plt.subplots(6, 6)
+# sns.set()
+# ax = []
 
-preums = 0
-nscans.append(139)
-index = list(np.indices([599])[0])
-for i in nscans:
-    n = i - prev
-    id = list(np.indices([n])[0] + prev)
-    # print prev, i, id, n
-    npArr = np.empty([599, n])
-    for k in xrange(n):
-        # print (id[0] + k) * 600, (id[0] + k + 1) * 600 - 1
-        npArr[:, k] = localData[(id[0] + k) * 600:(id[0] + k + 1) * 600 - 1, varID]
-        df3 = pd.DataFrame(npArr, index=index)
-        # print 'df3', df3.shape, npArr.shape
 
-    prev = i
-print np.max(localData[-1200:-600,varID].astype(float)),np.min(localData[-1200:-600:,varID].astype(float))
-# print df3
-# plt.show()
-# print slow.shape, fast.shape
-# sns.lmplot(slow[])
-#    for i in xrange(localData.shape[1]):
-#        if i not in [28, 29, 30]:
-#            risk= localDataAAA[:, i].astype(float)
-#            noaaa=localDatanoAAA[:, i].astype(float)
-#    #        print pdcolumnlist[i]
-#    #        print 'variance =', np.var(aaa), np.var(noaaa)
-#    #        print 'mean =', np.mean(aaa), np.mean(noaaa)
-#    #        print 'stdev =', np.std(aaa), np.std(noaaa)
-##            s,p = stats.ttest_ind(aaa, noaaa, equal_var=False, nan_policy='omit')
-##            if p<0.001:
-##                p = '<0.001'
-##            print localVarNames[i],',',np.nanmean(aaa),',',np.nanstd(aaa), ',',np.nanmean(noaaa),',',np.nanstd(noaaa),',',p
+# for ic in range(2):
+#     for il in range(2):
+#         ax.append(fig.add_subplot(4,ic+1,il+1))
+
+
+
+figsize = (6, 6)
+cols = 6
+cases = [1,2,3]
+gs = gridspec.GridSpec((np.max(globalData[:, 1].astype(int)) + 1) // cols + 1, cols)
+fig1 = plt.figure(num=1, figsize=figsize)
+ax = []
+
+
+for i in xrange(np.max(globalData[:, 1].astype(int)) + 1):
+    index = list(np.indices([a[i][:, 0].shape[0]])[0])
+    ll = [x + l for x in index]
+    # print i, index, l, ll,'\n'
+    print 'patient ', i
+    patchList = np.empty([600, len(ll)])
+    j = 0
+    for k in ll:
+        patchList[:, j] = localData[k * 600:(k + 1) * 600, varID].astype(float)
+        j += 1
+    df = pd.DataFrame(data=patchList, index=indices)
+    # boxwhisker = hv.BoxWhisker((df, index), label=varname)
+    # print df.shape
+    # toto = sns.boxplot(data=df)
+    # ax[i] = sns.boxplot(data=df)
+    # ax[i].scatter(patchList[0,:])# = plt.boxplot(patchList)
+    print patchList.shape, df.shape
+    # plt.show(ax[i])
+    # pl.append(toto)
+    # plt.show()
+    row = (i // cols)
+    col = i % cols
+    if col==2:
+        ax.append( fig1.add_subplot(gs[row, col]))
+    if row == 1:
+        ax.append(fig1.add_subplot(gs[row, col]))
+    l += len(index)
+
+# ax.plot(pl[0])
+# plt.tight_layout(pad=0.4, w_pad=0.5, h_pad=1.0)
+plt.show()
+
+# print pl
+# plot_opts = dict(show_legend=False, width=400)
+# style = dict(color='cyl')
+# layout =([boxwhisker])
+# hv.renderer('bokeh').save(boxwhisker, 'test', fmt='png')
+# export_png(boxwhisker, filename="plot.png")
+# for i in nscans:
+#     n = i - prev
+#     id = list(np.indices([n])[0] + prev)
+#     # print prev, i, id, n
+#     npArr = np.empty([599, n])
+#     for k in xrange(n):
+#         print (id[0] + k) * 600, (id[0] + k + 1) * 600 - 1
+#         npArr[:, k] = localData[(id[0] + k) * 600:(id[0] + k + 1) * 600 - 1, varID]
+#         df3 = pd.DataFrame(npArr, index=index)
+#         toto = sns.boxplot(data=df3,  width=0.5, showfliers=False, linewidth=0.2)
+#
+#     prev = i
