@@ -27,12 +27,14 @@ from bokeh.plotting import figure
 import numpy as np
 # import holoviews as hv
 import matplotlib.gridspec as gridspec
-
-
+import vapeplot
+# vapeplot.set_palette('sunset')
+pal =  sns.blend_palette(vapeplot.palette('vaporwave'))
 # hv.extension('bokeh')
 
 localData = np.load("localdata.npy")
 globalData = np.load("globaldata.npy")
+print globalData.shape, 'before'
 
 g = 0
 for i in xrange(globalData[:, 1].shape[0]):
@@ -53,30 +55,32 @@ for i in xrange(globalData.shape[0]):
 globalData = globalData[ind]
 indLoc = indLoc.astype(int)
 localData = localData[indLoc]
+print 'cm³'
+globalVarNames = ['lastScan', 'patientId', 'scanId', 'ptName', 'AAA', 'Age (years)', 'Sexe (-)', 'IMC (-)', \
+                  'Systolic pressure (mmHg)', 'Diastolic pressure (mmHg)', 'HTA (%)', 'nRxantiHTA (%)', 'DLP (%)', 'STATINES (%)', 'Lumen volume (cm³)', 'Thrombus volume (cm³)', \
+                  'Total volume (cm³)', 'Total volume, annual (cm³/year)', 'vTot_monthly_2percentthreshold', 'Lumen surface area (cm²)', \
+                  'Lumen shape factor (-)', 'Lumen Dmax (mm)', 'd0Lum', 'davgLum', 'Thrombus Dmax (mm)', 'dmaxTH_50mmthreshold', \
+                  'd0TH', 'davgTH', 'Lumen volume, annual (cm³/year)', 'Lumen surface area, annual (cm²/year)', 'Lumen shape factor, annual (year⁻¹)' \
+    , 'Lumen Dmax, annual (mm/year)', 'Thrombus Dmax, annual (mm/year)', 'dmaxTH_monthly5mmthreshold', \
+                  'Thrombus volume, annual (cm³/year)', 'Lumen centerline tortuosity (-)', 'Lumen centerline tortuosity,annual (year⁻¹)', 'Lumen centerline curvature (m⁻²)', \
+                  'Lumen centerline curvature, annual (m⁻²/year)', 'Divergence_average_max', 'WSSG max (Pa/m)', \
+                  'OSI max (-)', 'PatchArea_max', 'RRT max (Pa⁻¹)', 'TAWSS max (Pa)', 'Thrombus thickness max (mm)', \
+                  'ECAP max (Pa⁻¹)', 'Divergence_average_min', 'WSSG min (Pa/m)', \
+                  'OSI min (-)', 'PatchArea_min', 'RRT min (Pa⁻¹)', 'TAWSS min (Pa)', 'Thrombus thickness min (mm)', \
+                  'ECAP min (Pa⁻¹)', 'Divergence_average_mean', 'WSSG mean (Pa/m)', \
+                  'OSI mean (-)', 'PatchArea_mean', 'RRT mean (Pa⁻¹)', 'TAWSS mean (Pa)', 'Thrombus thickness mean', \
+                  'ECAP mean (Pa⁻¹)', 'Divergence_average_std', 'WSSG stdev (Pa/m)', 'OSI stdev (-)', \
+                  'PatchArea_std', 'RRT stdev (Pa⁻¹)', 'TAWSS stdev (Pa)', 'Thrombus thickness stdev (mm)', 'ECAP stdev (Pa⁻¹)', \
+                  'local lumen patch area mean, annual (mm²/year)', 'local lumen patch area max, annual (mm²/year)', \
+                  'local lumen patch area min, annual (mm²/year)', 'local thrombus thickness mean, annual (mm²/year)', 'local thrombus thickness max, annual (mm²/year)', 'local thrombus thickness min, annual (mm²/year)', \
+                  ' localDivAvgVarMean', 'localDivAvgVarMax', 'localDivAvgVarMin', 'local WSSG mean, annual (mm²/year)', \
+                  'local WSSG max, annual (mm²/year)', 'local WSSG min, annual (mm²/year)', ' local OSI mean, annual (mm²/year)', 'local WSSG max, annual (mm²/year)', \
+                  'local WSSG min, annual (mm²/year)', 'local RRT mean, annual (mm²/year)', 'local RRT max, annual (mm²/year)', 'local RRT min, annual (mm²/year)', \
+                  'local TAWSS mean, annual (mm²/year)', ' local TAWSS max, annual (mm²/year)', 'local TAWSS min, annual (mm²/year)', 'local ECAP mean, annual (mm²/year)', \
+                  'local ECAP max, annual (mm²/year)', 'local ECAP min, annual (mm²/year)', 'Thrombus coverage (%)', \
+                  'Thrombus coverage, annual (%/year)', 'dt', 'CummulativeRisk', 'dMaxGrowthRegression', 'Time']
 
-globalVarNames = ['lastScan', 'patientId', 'scanId', 'ptName', 'AAA', 'AGE', 'SEXE', 'IMC', \
-                  'Psys', 'Pdias', 'HTA', 'nRxantiHTA', 'DLP', 'STATINES', 'volLum', 'voTH', \
-                  'vTot', 'vTot_monthly', 'vTot_monthly_2percentthreshold', 'areaLum', \
-                  'shapeLum', 'dmaxLum', 'd0Lum', 'davgLum', 'dmaxTH', 'dmaxTH_50mmthreshold', \
-                  'd0TH', 'davgTH', 'volLum_monthly', 'areaLum_monthly', 'shapeLum_monthly' \
-    , 'dmaxLum_monthly', 'dmaxTH_monthly', 'dmaxTH_monthly5mmthreshold', \
-                  'volTH_monthly', 'tortuosity', 'tortLum_monthly', 'curvature', \
-                  'curvLum_monthly', 'Divergence_average_max', 'Gradients_average_max', \
-                  'OSI_max', 'PatchArea_max', 'RRT_max', 'TAWSS_max', 'Thrombus_thickness_max', \
-                  'ECAP_max', 'Divergence_average_min', 'Gradients_average_min', \
-                  'OSI_min', 'PatchArea_min', 'RRT_min', 'TAWSS_min', 'Thrombus_thickness_min', \
-                  'ECAP_min', 'Divergence_average_mean', 'Gradients_average_mean', \
-                  'OSI_mean', 'PatchArea_mean', 'RRT_mean', 'TAWSS_mean', 'Thrombus_thickness_mean', \
-                  'ECAP_mean', 'Divergence_average_std', 'Gradients_average_std', 'OSI_std', \
-                  'PatchArea_std', 'RRT_std', 'TAWSS_std', 'Thrombus_thickness_std', 'ECAP_std', \
-                  'localLumAreaVarMean', 'localLumAreaVarMax', \
-                  ' localLumAreaVarMin', 'localThThVarMean', 'localThThVarMax', 'localThThVarMin', \
-                  ' localDivAvgVarMean', 'localDivAvgVarMax', 'localDivAvgVarMin', 'localGradAvgVarMean', \
-                  'localGradAvgVarMax', 'localGradAvgVarMin', ' localOSIVarMean', 'localOSIVarMax', \
-                  'localOSIVarMin', 'localRRTVarMean', 'localRRTVarMax', 'localRRTVarMin', \
-                  'localTAWSSVarMean', ' localTAWSSVarMax', 'localTAWSSVarMin', 'localECAPVarMean', \
-                  'localECAPVarMax', 'localECAPVarMin', 'thrombusCoverage', \
-                  'thrombusCoverageVar', 'dt', 'CummulativeRisk', 'dMaxGrowthRegression']
+print len(globalVarNames)
 
 localVarNames = ['AbscissaMetric', 'AngularMetric', 'BoundaryMetric', 'ClippingArray', \
                  'DistanceToCenterlines', 'Divergence_average', 'Gradients_average', \
@@ -261,43 +265,77 @@ indices = list(np.indices([600])[0])
 #     for il in range(2):
 #         ax.append(fig.add_subplot(4,ic+1,il+1))
 
-
+sns.set_style("ticks")
+sns.set_context("paper")
 
 figsize = (6, 6)
 cols = 6
-cases = [1,2,3]
-gs = gridspec.GridSpec((np.max(globalData[:, 1].astype(int)) + 1) // cols + 1, cols)
+cases = [1, 2, 3]
+gs = gridspec.GridSpec((np.max(globalData[:, 1].astype(int)) + 5) // cols + 1, cols)
 fig1 = plt.figure(num=1, figsize=figsize)
 ax = []
+fig1.subplots_adjust(hspace=.5)
+j = 0
+# print globalData[:, -1]
+# print globalData[:, -2]
+# print globalData[:, -3]
 
 
-for i in xrange(np.max(globalData[:, 1].astype(int)) + 1):
+rc = [(0, 0),
+      (1, 0), (1, 1), (1, 2), (1, 3), (1, 4), (1, 5),
+      (2, 0), (2, 1), (2, 2), (2, 3), (2, 4), (2, 5),
+      (3, 0), (3, 1), (3, 2), (3, 3), (3, 4), (3, 5),
+      (4, 0), (4, 1), (4, 2), (4, 3), (4, 4), (4, 5),
+      (5, 0), (5, 1), (5, 2), (5, 3), (5, 4), (5, 5),
+      (6, 0), (6, 1), (6, 2), (6, 3), (6, 4), (6, 5)]
+
+for i in xrange(np.max(globalData[:, 1].astype(int))):
     index = list(np.indices([a[i][:, 0].shape[0]])[0])
     ll = [x + l for x in index]
-    # print i, index, l, ll,'\n'
-    print 'patient ', i
+    # print i, index, l, ll,globalData[ll[-1], -2],'\n'
+    # print 'patient ', i
     patchList = np.empty([600, len(ll)])
     j = 0
     for k in ll:
         patchList[:, j] = localData[k * 600:(k + 1) * 600, varID].astype(float)
         j += 1
     df = pd.DataFrame(data=patchList, index=indices)
-    # boxwhisker = hv.BoxWhisker((df, index), label=varname)
-    # print df.shape
-    # toto = sns.boxplot(data=df)
-    # ax[i] = sns.boxplot(data=df)
-    # ax[i].scatter(patchList[0,:])# = plt.boxplot(patchList)
-    print patchList.shape, df.shape
-    # plt.show(ax[i])
-    # pl.append(toto)
-    # plt.show()
+
     row = (i // cols)
     col = i % cols
-    if col==2:
-        ax.append( fig1.add_subplot(gs[row, col]))
-    if row == 1:
+    if (row, col) == (0, 0):
+        ax.append(fig1.add_subplot(gs[0,:3]))
+        toto = sns.boxplot(data=df, width=0.5, showfliers=False, linewidth=0.2, palette=pal)
+
+    else:
+        ax.append(fig1.add_subplot(gs[rc[i]]))
+
+        toto = sns.boxplot(data=df, width=0.5, showfliers=False, linewidth=0.2, palette=pal)
+    toto.tick_params(labelbottom='off')
+    toto.set(ylim=(0, 0.5))
+
+    '''
+    if (row,col) == (0,0):
+        #     ax.append( fig1.add_subplot(gs[row, col]))
+        # if col == 0:
+        ax.append(fig1.add_subplot(gs[0, 0]))
+        # gs[row, col].tick_params(labelbottom='off')
+        # ax[-1].boxplot(patchList, showfliers=False)
+        print 'isain',i
+        toto = sns.boxplot(data=df, width=0.5,showfliers=False,linewidth=0.2,palette=pal)
+
+    # row += 1
+    # col -= 1
+    if (row in [1,2,3,4,5,6,7]) and (i != 0):
+        #     ax.append( fig1.add_subplot(gs[row, col]))
+        # if col in [0,1,2,3,4,5,6]:
         ax.append(fig1.add_subplot(gs[row, col]))
+        # ax[-1].boxplot(patchList, showfliers=False)
+        print 'ifast',i
+        toto = sns.boxplot(data=df, width=0.5,showfliers=False,linewidth=0.2,palette=pal)
+'''
     l += len(index)
+
 
 # ax.plot(pl[0])
 # plt.tight_layout(pad=0.4, w_pad=0.5, h_pad=1.0)
