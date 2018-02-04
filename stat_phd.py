@@ -28,8 +28,9 @@ import numpy as np
 # import holoviews as hv
 import matplotlib.gridspec as gridspec
 import vapeplot
+
 # vapeplot.set_palette('sunset')
-pal =  sns.blend_palette(vapeplot.palette('vaporwave'))
+pal = sns.blend_palette(vapeplot.palette('vaporwave'))
 # hv.extension('bokeh')
 
 localData = np.load("localdata.npy")
@@ -57,12 +58,17 @@ indLoc = indLoc.astype(int)
 localData = localData[indLoc]
 print 'cm³'
 globalVarNames = ['lastScan', 'patientId', 'scanId', 'ptName', 'AAA', 'Age (years)', 'Sexe (-)', 'IMC (-)', \
-                  'Systolic pressure (mmHg)', 'Diastolic pressure (mmHg)', 'HTA (%)', 'nRxantiHTA (%)', 'DLP (%)', 'STATINES (%)', 'Lumen volume (cm³)', 'Thrombus volume (cm³)', \
-                  'Total volume (cm³)', 'Total volume, annual (cm³/year)', 'vTot_monthly_2percentthreshold', 'Lumen surface area (cm²)', \
-                  'Lumen shape factor (-)', 'Lumen Dmax (mm)', 'd0Lum', 'davgLum', 'Thrombus Dmax (mm)', 'dmaxTH_50mmthreshold', \
-                  'd0TH', 'davgTH', 'Lumen volume, annual (cm³/year)', 'Lumen surface area, annual (cm²/year)', 'Lumen shape factor, annual (year⁻¹)' \
+                  'Systolic pressure (mmHg)', 'Diastolic pressure (mmHg)', 'HTA (%)', 'nRxantiHTA (%)', 'DLP (%)',
+                  'STATINES (%)', 'Lumen volume (cm³)', 'Thrombus volume (cm³)', \
+                  'Total volume (cm³)', 'Total volume, annual (cm³/year)', 'vTot_monthly_2percentthreshold',
+                  'Lumen surface area (cm²)', \
+                  'Lumen shape factor (-)', 'Lumen Dmax (mm)', 'd0Lum', 'davgLum', 'Thrombus Dmax (mm)',
+                  'dmaxTH_50mmthreshold', \
+                  'd0TH', 'davgTH', 'Lumen volume, annual (cm³/year)', 'Lumen surface area, annual (cm²/year)',
+                  'Lumen shape factor, annual (year⁻¹)' \
     , 'Lumen Dmax, annual (mm/year)', 'Thrombus Dmax, annual (mm/year)', 'dmaxTH_monthly5mmthreshold', \
-                  'Thrombus volume, annual (cm³/year)', 'Lumen centerline tortuosity (-)', 'Lumen centerline tortuosity,annual (year⁻¹)', 'Lumen centerline curvature (m⁻²)', \
+                  'Thrombus volume, annual (cm³/year)', 'Lumen centerline tortuosity (-)',
+                  'Lumen centerline tortuosity,annual (year⁻¹)', 'Lumen centerline curvature (m⁻²)', \
                   'Lumen centerline curvature, annual (m⁻²/year)', 'Divergence_average_max', 'WSSG max (Pa/m)', \
                   'OSI max (-)', 'PatchArea_max', 'RRT max (Pa⁻¹)', 'TAWSS max (Pa)', 'Thrombus thickness max (mm)', \
                   'ECAP max (Pa⁻¹)', 'Divergence_average_min', 'WSSG min (Pa/m)', \
@@ -70,17 +76,41 @@ globalVarNames = ['lastScan', 'patientId', 'scanId', 'ptName', 'AAA', 'Age (year
                   'ECAP min (Pa⁻¹)', 'Divergence_average_mean', 'WSSG mean (Pa/m)', \
                   'OSI mean (-)', 'PatchArea_mean', 'RRT mean (Pa⁻¹)', 'TAWSS mean (Pa)', 'Thrombus thickness mean', \
                   'ECAP mean (Pa⁻¹)', 'Divergence_average_std', 'WSSG stdev (Pa/m)', 'OSI stdev (-)', \
-                  'PatchArea_std', 'RRT stdev (Pa⁻¹)', 'TAWSS stdev (Pa)', 'Thrombus thickness stdev (mm)', 'ECAP stdev (Pa⁻¹)', \
+                  'PatchArea_std', 'RRT stdev (Pa⁻¹)', 'TAWSS stdev (Pa)', 'Thrombus thickness stdev (mm)',
+                  'ECAP stdev (Pa⁻¹)', \
                   'local lumen patch area mean, annual (mm²/year)', 'local lumen patch area max, annual (mm²/year)', \
-                  'local lumen patch area min, annual (mm²/year)', 'local thrombus thickness mean, annual (mm²/year)', 'local thrombus thickness max, annual (mm²/year)', 'local thrombus thickness min, annual (mm²/year)', \
-                  ' localDivAvgVarMean', 'localDivAvgVarMax', 'localDivAvgVarMin', 'local WSSG mean, annual (mm²/year)', \
-                  'local WSSG max, annual (mm²/year)', 'local WSSG min, annual (mm²/year)', ' local OSI mean, annual (mm²/year)', 'local WSSG max, annual (mm²/year)', \
-                  'local WSSG min, annual (mm²/year)', 'local RRT mean, annual (mm²/year)', 'local RRT max, annual (mm²/year)', 'local RRT min, annual (mm²/year)', \
-                  'local TAWSS mean, annual (mm²/year)', ' local TAWSS max, annual (mm²/year)', 'local TAWSS min, annual (mm²/year)', 'local ECAP mean, annual (mm²/year)', \
-                  'local ECAP max, annual (mm²/year)', 'local ECAP min, annual (mm²/year)', 'Thrombus coverage (%)', \
+                  'local lumen patch area min, annual (mm²/year)', 'local thrombus thickness mean, annual (mm/year)',
+                  'local thrombus thickness max, annual (mm/year)', 'local thrombus thickness min, annual (mm/year)', \
+                  ' localDivAvgVarMean', 'localDivAvgVarMax', 'localDivAvgVarMin',
+                  'local WSSG mean, annual (Pa/(m year))', \
+                  'local WSSG max, annual (Pa/(m year)', 'local WSSG min, annual (Pa/(m year)',
+                  ' local OSI mean, annual (year⁻¹)', 'local OSI max, annual (year⁻¹)', \
+                  'local OSI min, annual (year⁻¹)', 'local RRT mean, annual (Pa⁻¹/year)',
+                  'local RRT max, annual (Pa⁻¹/year)', 'local RRT min, annual (Pa⁻¹/year)', \
+                  'local TAWSS mean, annual (Pa/year)', ' local TAWSS max, annual (Pa/year)',
+                  'local TAWSS min, annual (Pa⁻¹/year)', 'local ECAP mean, annual (Pa⁻¹/year)', \
+                  'local ECAP max, annual (Pa⁻¹/year)', 'local ECAP min, annual (Pa⁻¹/year)', 'Thrombus coverage (%)', \
                   'Thrombus coverage, annual (%/year)', 'dt', 'CummulativeRisk', 'dMaxGrowthRegression', 'Time']
 
-print len(globalVarNames)
+# print globalVarNames
+
+sortList = [0,1,2,3,4,6,5,7,8,9,10,11,12,13,19,29,14,28,15,34,16,17,21,31,24,32,20,30,35,36,37,38,95,96,45,53,61,69,41,49,57,65,44,52,60,68,40,48,56,64,43,51,59,67,46,54,62,70,72,73,71,75,76,74,84,85,83,90,91,89,81,82,80,87,88,86,93,94,92,77,78,79,66,63,58,55,50,47,42,18,22,23,25,26,27,33,39,97,98,99,100]
+
+globalVarNamesSorted = []
+globalDataSorted = np.empty_like(globalData)
+for i in xrange(len(globalVarNames)):
+    # i += 1
+    # print i, globalVarNames[i], sortList[i], globalVarNames[sortList[i]],'\n'
+    globalVarNamesSorted.append(globalVarNames[sortList[i]])
+    if i<100:
+        globalDataSorted[:, i] = globalData[:, sortList[i]]
+globalVarNames = globalVarNamesSorted
+
+globalData = globalDataSorted
+# print globalVarNames
+# print globalDataSorted[:,5]
+# print globalData[:,25]
+#
 
 localVarNames = ['AbscissaMetric', 'AngularMetric', 'BoundaryMetric', 'ClippingArray', \
                  'DistanceToCenterlines', 'Divergence_average', 'Gradients_average', \
@@ -90,8 +120,9 @@ localVarNames = ['AbscissaMetric', 'AngularMetric', 'BoundaryMetric', 'ClippingA
                  'localRRTVar', 'localTAWSSVar', 'localECAPVar', 'ECAP', 'localDistToCtrl', \
                  'localDistToCtrlVar', 'thrombusGrowthThresh', 'stretchGrowthThresh', 'disToCtrlGrowthThresh']
 
-AAAvsnoAAA = 0
-riskvsnorisk = 1
+AAAvsnoAAA = 1
+riskvsnorisk = 0
+# print globalData[:,4], globalVarNames[4]
 
 idDmaxth = globalVarNames.index('dmaxTH_50mmthreshold')
 idVolmax = globalVarNames.index('vTot_monthly_2percentthreshold')
@@ -100,8 +131,8 @@ CummulativeRisk = globalVarNames.index('CummulativeRisk')
 localDataAAA = localData[:-5400, :]
 localDatanoAAA = localData[-5399:, :]
 
-globalDataAAA = globalData[:-10, :]
-globalDatanoAAA = globalData[-9:, :]
+globalDatanoAAA = globalData[:10, :]
+globalDataAAA = globalData[10:, :]
 
 globalDataAAARisky = globalDataAAA[globalDataAAA[:, CummulativeRisk] == 'True']
 # globalDataAAARisky = globalDataAAARisky[globalDataAAARisky[:,idVolmax]=='True']
@@ -116,7 +147,7 @@ for i in xrange(globalDataAAA.shape[0]):
 
 if AAAvsnoAAA:
     for i in xrange(globalData.shape[1]):
-        if i not in [0, 3, 4, 18, 33, 6, 98, 25]:
+        if i not in [0, 1, 3,4, 5,7, 89, 92, 95, 98, 99, 100]:
             aaa = globalDataAAA[:, i].astype(float)
             noaaa = globalDatanoAAA[:, i].astype(float)
             #        print pdcolumnlist[i]
@@ -126,7 +157,7 @@ if AAAvsnoAAA:
             s, p = stats.ttest_ind(aaa, noaaa, equal_var=False, nan_policy='omit')
             if p < 0.001:
                 p = '<0.001'
-            # print globalVarNames[i],',',np.nanmean(aaa),',',np.nanstd(aaa), ',',np.nanmean(noaaa),',',np.nanstd(noaaa),',',p
+            print globalVarNames[i],',',np.nanmean(aaa),',',np.nanstd(aaa), ',',np.nanmean(noaaa),',',np.nanstd(noaaa),',',p
     print '\n\n'
 
     for i in xrange(localData.shape[1]):
@@ -144,8 +175,8 @@ if AAAvsnoAAA:
 
 if riskvsnorisk:
     for i in xrange(globalData.shape[1]):
-        if i not in [0, 3, 4, 18, 33, 6, 98, 25]:
-            #            print i
+        if i not in [0, 1, 3,4, 5,7, 89, 92, 95, 98, 99, 100]:
+            # print i, globalVarNames[i]
             risk = globalDataAAARisky[:, i].astype(float)
             norisk = globalDataAAAnotRisky[:, i].astype(float)
             #        print pdcolumnlist[i]
@@ -187,10 +218,13 @@ a = np.split(globalData, nscans, axis=0)
 time_seriesSlow = traces.TimeSeries()
 time_seriesFast = traces.TimeSeries()
 
-varID = 52
+varID = 39
 varname = globalVarNames[varID]
+print 'varname', varname
+
 minVar = np.nanmin(globalData[:, varID].astype(float)) - 0.1 * np.nanmin(globalData[:, varID].astype(float))
 maxVar = np.nanmax(globalData[:, varID].astype(float)) + 0.1 * np.nanmax(globalData[:, varID].astype(float))
+print minVar, maxVar
 
 p1 = figure(x_range=(-1, np.max(globalData[:, -1].astype(float) + 1)), y_range=(minVar, maxVar))
 p1.grid.grid_line_alpha = 0.3
@@ -304,7 +338,7 @@ for i in xrange(np.max(globalData[:, 1].astype(int))):
     row = (i // cols)
     col = i % cols
     if (row, col) == (0, 0):
-        ax.append(fig1.add_subplot(gs[0,:3]))
+        ax.append(fig1.add_subplot(gs[0, :3]))
         toto = sns.boxplot(data=df, width=0.5, showfliers=False, linewidth=0.2, palette=pal)
 
     else:
@@ -336,10 +370,9 @@ for i in xrange(np.max(globalData[:, 1].astype(int))):
 '''
     l += len(index)
 
-
 # ax.plot(pl[0])
 # plt.tight_layout(pad=0.4, w_pad=0.5, h_pad=1.0)
-plt.show()
+# plt.show()
 
 # print pl
 # plot_opts = dict(show_legend=False, width=400)
