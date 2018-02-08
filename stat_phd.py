@@ -335,7 +335,7 @@ rc = [(0, 0),
       (5, 0), (5, 1), (5, 2), (5, 3), (5, 4), (5, 5),
       (6, 0), (6, 1), (6, 2), (6, 3), (6, 4), (6, 5)]
 
-varID = 28
+varID = 2
 varname = localVarNames[varID]
 outfile = varname + 'local.png'
 print varname, varID
