@@ -14,9 +14,9 @@ from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.model_selection import RepeatedKFold, RepeatedStratifiedKFold, StratifiedKFold
 from sklearn.calibration import calibration_curve
-from sklearn.metrics import confusion_matrix
+from sklearn.metrics import mean_squared_error, explained_variance_score,r2_score
 import itertools
-from sklearn.metrics import cohen_kappa_score, f1_score, roc_auc_score
+from sklearn.metrics import cohen_kappa_score, f1_score, roc_auc_score, confusion_matrix
 from sklearn import preprocessing
 from sklearn.preprocessing import Imputer
 import vapeplot
@@ -32,15 +32,14 @@ import random
 imp = Imputer(missing_values='NaN', strategy='mean', axis=0)
 
 cmap = vapeplot.cmap('cool')
-outliers = 0
-nneighbours = 20
+outliers = 1
 randomParamsSearch = 0
-eval = 1
-rocanal = 0
+eval = 0
+rocanal = 1
 methodList = ['nn', 'svc', 'nnreg', 'linReg', 'svr']
-method = methodList[-1]
+method = methodList[1]
 dataList = ['local', 'global']
-data = dataList[0]
+data = dataList[1]
 
 
 def report(results, n_top=3):
@@ -118,9 +117,13 @@ if data == 'local':
     localData = np.load('localdata.npy')
 
     X = localData[:, [4, 5, 6, 9, 10, 11, 15, 16, 25]].astype(float)
-    X = X[:10000, :]
+    X = X[10000:15110, :]
     y = localData[:, -4].astype(float)
-    y = y[:10000]
+    y = y[10000:15110]
+
+
+
+        # y = y[clf.fit_predict(X) > 0]
 
     imp.fit(X)
     X = imp.transform(X)
@@ -143,8 +146,13 @@ elif data == 'global':
     X = preprocessing.scale(X, axis=0)
 
 if outliers:
-    clf = LocalOutlierFactor(n_neighbors=nneighbours)
-    y = clf.fit_predict(X)
+    print X.shape, y.shape
+    clf = LocalOutlierFactor(n_neighbors=20)
+    Xlog = clf.fit_predict(X, y)
+    print X.shape, y.shape, Xlog.shape
+    y= y[Xlog==1]
+    X= X[Xlog==1]
+    print X.shape, y.shape, Xlog.shape
 
 random_state = random.randint(1e3, 1e6)
 
@@ -158,9 +166,9 @@ if method == 'nn':
             learning_rate=0.004095, n_iter=100))])
 elif method == 'svc':
     classifier = svm.SVC(kernel='sigmoid', probability=True,
-                         random_state=random_state, verbose=True)
+                         random_state=random_state, verbose=False)
 elif method == 'svr':
-    classifier = svm.SVR(kernel='rbf', verbose=True)
+    classifier = svm.SVR(kernel='rbf', verbose=False, cache_size=1000)
 
 elif method == 'nnreg':
     classifier = Regressor(
@@ -187,25 +195,16 @@ if eval:
         for train, test in rkf.split(X, y):
             X_train, X_test, y_train, y_test = X[train], X[test], y[train], y[test]
             y_pred = classifier.fit(X_train, y_train).predict(X_test)
-            print "Results of Linear Regression...."
-            print "================================\n"
-            # The coefficients
-            # print('Coefficients: ', classifier.coef_)
-            # The mean square error
-            print("Residual sum of squares: %.2f"
-                  % np.mean((classifier.predict(X_test) - y_test) ** 2))
-            # Explained variance score: 1 is perfect prediction
-            print('Variance score: %.2f' % classifier.score(X_test, y_test))
+            print "\nResults of Linear Regression...."
+            print "================================"
+            print('explained variance {}'.format(explained_variance_score(y_test, y_pred)))
+            print('mean_squared_error {}'.format(mean_squared_error(y_test, y_pred)))
+            print('r2_score {}'.format(r2_score(y_test, y_pred)))
+            plt.scatter(y_test.T, y_pred.T)
+            # plt.matshow(y_pred)
+            plt.show()
 
-            # Plot outputs
-        #     plt.scatter(X_test, y_test, color='black')
-        #     plt.plot(diabetes_X_test, classifier.predict(X_test), color='blue',
-        #              linewidth=3)
-        #
-        #     plt.xticks(())
-        #     plt.yticks(())
-        #
-        # plt.show()
+
     else:
         rkf = RepeatedStratifiedKFold(n_splits=5, n_repeats=1, random_state=random_state)
         ini = 0
